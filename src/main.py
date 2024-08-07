@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import font
-from game import Move, Game
+from game import Move, Game, USER_PLAYER, AI_PLAYER
+from ai import AI
 
 class Board(tk.Tk):
     def __init__(self, game):
@@ -34,7 +35,7 @@ class Board(tk.Tk):
                     font=font.Font(size=36, weight="bold"),
                     fg="black",
                     width=3,
-                    height=2,
+                    height=1,
                     highlightbackground="lightblue",
                 )
                 self.cells[button] = (row, col)
@@ -61,9 +62,23 @@ class Board(tk.Tk):
                 button.config(highlightbackground="red")
     
     def play(self, event):
-        clicked_btn = event.widget
-        row, col = self.cells[clicked_btn]
-        move = Move(row, col, self.game.current_player.label)
+        if self.game.current_player.label == USER_PLAYER:
+            clicked_btn = event.widget
+            row, col = self.cells[clicked_btn]
+            move = Move(row, col, self.game.current_player.label)
+        self.update_condition(clicked_btn, move)
+        if self.game.get_open_positions() != []:
+            clicked_btn, move = self.make_ai_move()
+            self.update_condition(clicked_btn, move)
+    
+    def make_ai_move(self):
+        ai = AI(self.game.current_state())
+        move = ai.best_move()
+        clicked_btn = next((k for k, v in self.cells.items() if v == (move.row, move.col)), None)
+        clicked_btn.invoke()
+        return clicked_btn, move
+    
+    def update_condition(self, clicked_btn, move):
         if self.game.is_valid_move(move):
             self.update_button(clicked_btn)
             self.game.make_move(move)
