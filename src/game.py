@@ -1,3 +1,4 @@
+import copy
 from typing import NamedTuple
 from itertools import cycle
 
@@ -16,6 +17,8 @@ DEFAULT_PLAYERS = (
     Player(label="O", color="green"),
 )
 
+USER_PLAYER, AI_PLAYER = "X", "O"
+
 class Game:
     def __init__(self, players=DEFAULT_PLAYERS, board_size=BOARD_SIZE):
         self.players = cycle(players)
@@ -33,6 +36,19 @@ class Game:
             for row in range(self.board_size)
         ]
         self.winning_combos = self.get_winning_combos()
+    
+    def current_state(self):
+        return copy.deepcopy(self.current_moves)
+
+    def set_state(self, current_state):
+        self.current_moves = copy.deepcopy(current_state)
+    
+    def get_open_positions(self):
+        positions = []
+        for move in (move for row in self.current_moves for move in row):
+            if move.label == "":
+                positions.append((move.row,move.col))
+        return positions
     
     def get_winning_combos(self):
         rows = [
@@ -64,7 +80,11 @@ class Game:
                 break
 
     def has_winner(self):
-        return self.winner
+        if self.winner == True:
+            self.winner = False
+            return True
+        else:
+            return False
     
     def is_tied(self):
         no_winner = not self.winner
